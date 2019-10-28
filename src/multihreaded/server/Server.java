@@ -5,12 +5,10 @@ package multihreaded.server;
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-
 /**
  *
  * @author Luke Fox
  */
-
 import java.io.*;
 import java.net.*;
 import java.util.*;
@@ -22,8 +20,11 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import javax.swing.*;
 import java.util.Date;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class Server extends JFrame {
+
     private JTextArea jta = new JTextArea();
 
     public static void main(String[] args) {
@@ -37,9 +38,9 @@ public class Server extends JFrame {
         setTitle("Server");
         setSize(500, 300);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setVisible(true); 
+        setVisible(true);
         try {
-            
+
             ServerSocket serverSocket = new ServerSocket(8000);
             jta.append("Server started at " + new Date() + '\n');
 
@@ -50,65 +51,79 @@ public class Server extends JFrame {
             }
         } catch (IOException ex) {
             System.err.println(ex);
-       }
-    } 
+        }
+    }
 
 }
 
-
 /// Class to handle client input
+class ClientHandler extends Thread {
 
- class ClientHandler extends Thread {
-        
-        private Socket socket;
-        private InetAddress address;
-        private DataInputStream inuputFromClient;
-        private DataOutputStream outputToServer;
-        
-        public ClientHandler(Socket socket) throws IOException {
-            
-          this.socket = socket;
-          this.inuputFromClient = new DataInputStream(socket.getInputStream());
-          this.outputToServer = new DataOutputStream(socket.getOutputStream());
-          this.address = socket.getInetAddress();
-        }
+    private DBController database;
+    private Socket socket;
+    private InetAddress address;
+    private DataInputStream inuputFromClient;
+    private DataOutputStream outputToServer;
 
-        /*
+    public ClientHandler(Socket socket) throws IOException {
+
+        this.socket = socket;
+        this.inuputFromClient = new DataInputStream(socket.getInputStream());
+        this.outputToServer = new DataOutputStream(socket.getOutputStream());
+        this.address = socket.getInetAddress();
+        this.database = new DBController();
+        database.run();
+    }
+
+    /*
          * The method that runs when the thread starts
-         */
-        public void run() {
+     */
+    @Override
+    public void run() {
+        while (true) {
             try {
-              // Receive input from client
-                System.out.println("RECIEVED --> " + inuputFromClient.readUTF());
-               
-            } catch (Exception e) {
+                // Receive input from client
+                requestHandler(inuputFromClient.readUTF());
+            } catch (IOException e) {
                 System.err.println(e + " on " + socket);
             }
         }
-        
-        public void requestHandler(String[] request) {
-            switch(request[0]) {
-                case "login": {
-                    
+    }
+
+    public void requestHandler(String request) {
+        System.out.println("Recieved: " + request);
+        String requestType = request.split("-")[0];
+        String requestData = request.split("-")[1];
+        switch (requestType) {
+            case "login": {
+                try {
+                    Student student = database.findStudentByID(requestData);
+
+                    if (student != null) {
+                        System.out.println("Welcome " + student.getFirstName() + " " + student.getSurname());
+                    } else {
+                        System.out.println("No Student Found!");
+                    }
+                } catch (SQLException ex) {
+                    System.out.println("Error finding Student! \n " + ex.getMessage());;
                 }
-                
-                case "getAllUsers": {
-                    
-                }
-                
-                case "getUser": {
-                    
-                }
+            }
+
+            case "getAllUsers": {
+
+            }
+
+            case "getUser": {
+
             }
         }
     }
-        
+}
 
 /// Class to access DB
-
 class DBController {
-    
-    private final String tableName = "employees";
+
+    private final String tableName = "students";
     private Connection conn;
 
     public Connection getConnection() throws SQLException {
@@ -121,7 +136,7 @@ class DBController {
 
         String serverName = "localhost";
         int portNumber = 3306;
-        String dbName = "test";
+        String dbName = "dist_sys_assignment_2";
         conn = DriverManager.getConnection(
                 "jdbc:mysql://" + serverName + ":"
                 + portNumber + "/" + dbName, connectionProps);
@@ -136,21 +151,32 @@ class DBController {
         return formatStudents(students, result);
     }
 
-
-    ArrayList findStudent(String userID) throws SQLException {
+    Student findStudentByID(String userID) throws SQLException {
         ArrayList<Student> student = new ArrayList<>();
         String command = "SELECT * FROM `students` WHERE `SID` = \'" + userID + "\'";
+        ResultSet result = executeSelectQuery(conn, command);
+        if (!result.isBeforeFirst()) {
+            return null;
+        } else {
+            return formatStudents(student, result).get(0);
+        }
+    }
+
+    ArrayList searchStudent(String surname) throws SQLException {
+        ArrayList<Student> student = new ArrayList<>();
+        String command = "SELECT * FROM `students` WHERE `SNAME` = \'" + surname + "\'";
         ResultSet result = executeSelectQuery(conn, command);
         return formatStudents(student, result);
     }
 
     private ArrayList<Student> formatStudents(ArrayList<Student> students, ResultSet result) throws SQLException {
+        System.out.println("RESULT: " + result.toString());
         while (result.next()) {
             Student student = new Student(
                     result.getInt("SID"),
                     result.getInt("STUD_ID"),
                     result.getString("FNAME"),
-                    result.getString("SURNAME"));
+                    result.getString("SNAME"));
             students.add(student);
         }
         return students;
@@ -168,7 +194,6 @@ class DBController {
         return result;
     }
 
-
     void run() {
         try {
             conn = this.getConnection();
@@ -179,4 +204,3 @@ class DBController {
         }
     }
 }
-        

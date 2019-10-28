@@ -115,7 +115,7 @@ public class Client extends javax.swing.JFrame {
     }// </editor-fold>//GEN-END:initComponents
 
     private void loginButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_loginButtonActionPerformed
-        login(Integer.valueOf(loginField.getText()));
+        login(loginField.getText());
     }//GEN-LAST:event_loginButtonActionPerformed
 
     /**
@@ -164,9 +164,8 @@ public class Client extends javax.swing.JFrame {
     private javax.swing.JButton loginButton;
     private javax.swing.JTextField loginField;
     // End of variables declaration//GEN-END:variables
-    
+
     // main functionality
-    
     public void connect() {
         try {
             socket = new Socket("localhost", 8000);
@@ -176,10 +175,11 @@ public class Client extends javax.swing.JFrame {
             System.out.println(ex.getMessage());
         }
     }
-    
-    public void login(int userID) {
+
+    public void login(String userID) {
         try {
-            toServer.writeInt(userID);
+            toServer.flush();
+            toServer.writeUTF("login-" + userID);
         } catch (IOException ex) {
             Logger.getLogger(Client.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -187,22 +187,20 @@ public class Client extends javax.swing.JFrame {
 }
 
 class Student {
-    
+
     int SID;
     int studID;
-    String firstName;
-    String surname;
-    
-    
-    public Student(int SID, int studID, String firstName, String surname) {
+    String fName;
+    String sName;
+
+    public Student(int SID, int studID, String fName, String sName) {
         this.setSID(SID);
         this.setStudID(studID);
-        this.setFirstName(firstName);
-        this.setSurname(surname);
+        this.setFirstName(fName);
+        this.setSurname(sName);
     }
-    
-    // Getters and Setters
 
+    // Getters and Setters
     public int getSID() {
         return SID;
     }
@@ -212,11 +210,11 @@ class Student {
     }
 
     public String getFirstName() {
-        return firstName;
+        return fName;
     }
 
     public String getSurname() {
-        return surname;
+        return sName;
     }
 
     public void setSID(int SID) {
@@ -227,20 +225,16 @@ class Student {
         this.studID = studID;
     }
 
-    public void setFirstName(String firstName) {
-        this.firstName = firstName;
+    public void setFirstName(String fName) {
+        this.fName = fName;
     }
 
-    public void setSurname(String surname) {
-        this.surname = surname;
+    public void setSurname(String sName) {
+        this.sName = sName;
     }
 
     @Override
     public String toString() {
-        return "Student{" + "SID=" + SID + ", studID=" + studID + ", firstName=" + firstName + ", surname=" + surname + '}';
+        return "Student{" + "SID=" + SID + ", studID=" + studID + ", firstName=" + fName + ", surname=" + sName + '}';
     }
-    
-    
-    
-    
 }
