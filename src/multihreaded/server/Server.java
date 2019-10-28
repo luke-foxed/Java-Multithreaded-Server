@@ -25,7 +25,7 @@ import java.util.logging.Logger;
 
 public class Server extends JFrame {
 
-    private JTextArea jta = new JTextArea();
+    private JTextArea serverLog = new JTextArea();
 
     public static void main(String[] args) {
         new Server();
@@ -34,7 +34,7 @@ public class Server extends JFrame {
     public Server() {
         // Place text area on the frame
         setLayout(new BorderLayout());
-        add(new JScrollPane(jta), BorderLayout.CENTER);
+        add(new JScrollPane(serverLog), BorderLayout.CENTER);
         setTitle("Server");
         setSize(500, 300);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -42,11 +42,11 @@ public class Server extends JFrame {
         try {
 
             ServerSocket serverSocket = new ServerSocket(8000);
-            jta.append("Server started at " + new Date() + '\n');
+            serverLog.append("Server started at " + new Date() + '\n');
 
             while (true) {
                 Socket newSocket = serverSocket.accept();
-                ClientHandler client = new ClientHandler(newSocket);
+                ClientHandler client = new ClientHandler(newSocket, serverLog);
                 client.start();
             }
         } catch (IOException ex) {
@@ -63,15 +63,19 @@ class ClientHandler extends Thread {
     private Socket socket;
     private InetAddress address;
     private DataInputStream inuputFromClient;
-    private DataOutputStream outputToServer;
+    private DataOutputStream outputToClient;
 
-    public ClientHandler(Socket socket) throws IOException {
+    private JTextArea serverLog;
+
+    public ClientHandler(Socket socket, JTextArea serverLog) throws IOException {
 
         this.socket = socket;
         this.inuputFromClient = new DataInputStream(socket.getInputStream());
-        this.outputToServer = new DataOutputStream(socket.getOutputStream());
+        this.outputToClient = new DataOutputStream(socket.getOutputStream());
+        
         this.address = socket.getInetAddress();
         this.database = new DBController();
+        this.serverLog = serverLog;
         database.run();
     }
 
@@ -82,16 +86,19 @@ class ClientHandler extends Thread {
     public void run() {
         while (true) {
             try {
-                // Receive input from client
-                requestHandler(inuputFromClient.readUTF());
+                try {
+                    // Receive input from client
+                    requestHandler(inuputFromClient.readUTF());
+                } catch (SQLException ex) {
+                    Logger.getLogger(ClientHandler.class.getName()).log(Level.SEVERE, null, ex);
+                }
             } catch (IOException e) {
                 System.err.println(e + " on " + socket);
             }
         }
     }
 
-    public void requestHandler(String request) {
-        System.out.println("Recieved: " + request);
+    public void requestHandler(String request) throws SQLException, IOException {
         String requestType = request.split("-")[0];
         String requestData = request.split("-")[1];
         switch (requestType) {
@@ -100,9 +107,12 @@ class ClientHandler extends Thread {
                     Student student = database.findStudentByID(requestData);
 
                     if (student != null) {
-                        System.out.println("Welcome " + student.getFirstName() + " " + student.getSurname());
+                        outputToClient.writeBoolean(true);
+                        outputToClient.writeUTF(student.getFirstName() + " " + student.getSurname());
+                        writeToServer("Login", "Welcome " + student.getFirstName() + " " + student.getSurname());
                     } else {
-                        System.out.println("No Student Found!");
+                        outputToClient.writeBoolean(false);
+                        writeToServer("Login", "No Student Found");
                     }
                 } catch (SQLException ex) {
                     System.out.println("Error finding Student! \n " + ex.getMessage());;
@@ -110,13 +120,37 @@ class ClientHandler extends Thread {
             }
 
             case "getAllUsers": {
-
+                ArrayList<Student> students = database.getStudents();
+                for(Student student: students) {
+                    String serialized = serializeString(student);
+                    outputToClient.writeUTF(serialized);
+                }
             }
 
             case "getUser": {
 
             }
         }
+    }
+
+    private void writeToServer(String request, String response) {
+        serverLog.append(
+                "Request: " + request
+                + " From: " + this.address
+                + " ||  Response: " + response
+                + " Date : " + new Date() + "\n");
+    }
+    
+    private String serializeString(Student student) {
+        String serializedStudent = "";
+        
+        // add '-' delimeter that can be used to split string
+        serializedStudent += student.getSID() + "-";
+        serializedStudent += student.getStudID() + "-";
+        serializedStudent += student.getFirstName() +"-";
+        serializedStudent += student.getSurname() + "-";
+
+        return serializedStudent;
     }
 }
 
@@ -173,8 +207,8 @@ class DBController {
         System.out.println("RESULT: " + result.toString());
         while (result.next()) {
             Student student = new Student(
-                    result.getInt("SID"),
-                    result.getInt("STUD_ID"),
+                    result.getString("SID"),
+                    result.getString("STUD_ID"),
                     result.getString("FNAME"),
                     result.getString("SNAME"));
             students.add(student);
