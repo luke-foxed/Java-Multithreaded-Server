@@ -72,7 +72,7 @@ class ClientHandler extends Thread {
         this.socket = socket;
         this.inuputFromClient = new DataInputStream(socket.getInputStream());
         this.outputToClient = new DataOutputStream(socket.getOutputStream());
-        
+
         this.address = socket.getInetAddress();
         this.database = new DBController();
         this.serverLog = serverLog;
@@ -101,6 +101,7 @@ class ClientHandler extends Thread {
     public void requestHandler(String request) throws SQLException, IOException {
         String requestType = request.split("-")[0];
         String requestData = request.split("-")[1];
+        System.out.println("TYPE: " + requestType + " DATA: " + requestData);
         switch (requestType) {
             case "login": {
                 try {
@@ -117,18 +118,24 @@ class ClientHandler extends Thread {
                 } catch (SQLException ex) {
                     System.out.println("Error finding Student! \n " + ex.getMessage());;
                 }
+                break;
             }
 
-            case "getAllUsers": {
+            case "getAllStudents": {
                 ArrayList<Student> students = database.getStudents();
-                for(Student student: students) {
-                    String serialized = serializeString(student);
-                    outputToClient.writeUTF(serialized);
-                }
+                writeToServer("Get All Students", "Retrieved [" + students.size() + "] students");
+                ObjectOutputStream oos = new ObjectOutputStream(socket.getOutputStream());
+                oos.writeUnshared(students);
+
+                break;
             }
 
-            case "getUser": {
-
+            case "searchStudents": {
+                ArrayList<Student> students = database.searchStudent(requestData);
+                writeToServer("Search Students", "Found [" + students.size() + "] students from surname " + requestData);
+                ObjectOutputStream oos = new ObjectOutputStream(socket.getOutputStream());
+                oos.writeUnshared(students);
+                break;
             }
         }
     }
@@ -136,21 +143,9 @@ class ClientHandler extends Thread {
     private void writeToServer(String request, String response) {
         serverLog.append(
                 "Request: " + request
-                + " From: " + this.address
-                + " ||  Response: " + response
-                + " Date : " + new Date() + "\n");
-    }
-    
-    private String serializeString(Student student) {
-        String serializedStudent = "";
-        
-        // add '-' delimeter that can be used to split string
-        serializedStudent += student.getSID() + "-";
-        serializedStudent += student.getStudID() + "-";
-        serializedStudent += student.getFirstName() +"-";
-        serializedStudent += student.getSurname() + "-";
-
-        return serializedStudent;
+                + " - From: " + this.address
+                + " || Response: " + response
+                + " - Date : " + new Date() + "\n");
     }
 }
 

@@ -6,6 +6,7 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
+import java.io.Serializable;
 import java.lang.reflect.InvocationTargetException;
 import java.net.Socket;
 import java.util.ArrayList;
@@ -42,10 +43,8 @@ public class Client extends javax.swing.JFrame {
 
         // Client setup and database connection
         initComponents();
-        connect();
         mainViewVisibility(false);
-       //  students = fetchAllStudents();
-       // mapToTable(students);
+        connect();
     }
 
     @SuppressWarnings("unchecked")
@@ -56,8 +55,10 @@ public class Client extends javax.swing.JFrame {
         jLabelLogin = new javax.swing.JLabel();
         jTextFieldLogin = new javax.swing.JTextField();
         jButtonLogin = new javax.swing.JButton();
+        jButtonLoginOut = new javax.swing.JButton();
         jPanel1 = new javax.swing.JPanel();
         jLabelHeader = new javax.swing.JLabel();
+        jLabelWelcomeName = new javax.swing.JLabel();
         jTextFieldFirstName = new javax.swing.JTextField();
         jLabelFirstName = new javax.swing.JLabel();
         jTextFieldSurname = new javax.swing.JTextField();
@@ -82,7 +83,7 @@ public class Client extends javax.swing.JFrame {
         jLabelLogin.setFont(new java.awt.Font("Tahoma", 1, 24)); // NOI18N
         jLabelLogin.setForeground(new java.awt.Color(255, 255, 255));
         jLabelLogin.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
-        jLabelLogin.setText("PLEASE LOGIN IN");
+        jLabelLogin.setText(" PLEASE ENTER YOUR USER ID");
 
         jTextFieldLogin.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -107,20 +108,33 @@ public class Client extends javax.swing.JFrame {
             }
         });
 
+        jButtonLoginOut.setBackground(new java.awt.Color(102, 153, 255));
+        jButtonLoginOut.setFont(new java.awt.Font("Dialog", 1, 14)); // NOI18N
+        jButtonLoginOut.setForeground(new java.awt.Color(255, 255, 255));
+        jButtonLoginOut.setText("LOG OUT");
+        jButtonLoginOut.setBorder(javax.swing.BorderFactory.createEmptyBorder(1, 1, 1, 1));
+        jButtonLoginOut.setBorderPainted(false);
+        jButtonLoginOut.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButtonLoginOutActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout jPanel2Layout = new javax.swing.GroupLayout(jPanel2);
         jPanel2.setLayout(jPanel2Layout);
         jPanel2Layout.setHorizontalGroup(
             jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addComponent(jLabelLogin, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel2Layout.createSequentialGroup()
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addContainerGap(326, Short.MAX_VALUE)
                 .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel2Layout.createSequentialGroup()
-                        .addComponent(jTextFieldLogin, javax.swing.GroupLayout.PREFERRED_SIZE, 192, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(316, 316, 316))
-                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel2Layout.createSequentialGroup()
-                        .addComponent(jButtonLogin, javax.swing.GroupLayout.PREFERRED_SIZE, 115, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(351, 351, 351))))
+                    .addComponent(jTextFieldLogin, javax.swing.GroupLayout.PREFERRED_SIZE, 192, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addGroup(jPanel2Layout.createSequentialGroup()
+                        .addGap(6, 6, 6)
+                        .addComponent(jButtonLogin, javax.swing.GroupLayout.PREFERRED_SIZE, 90, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(jButtonLoginOut, javax.swing.GroupLayout.PREFERRED_SIZE, 90, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                .addGap(316, 316, 316))
         );
         jPanel2Layout.setVerticalGroup(
             jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -130,8 +144,10 @@ public class Client extends javax.swing.JFrame {
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jTextFieldLogin, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jButtonLogin, javax.swing.GroupLayout.PREFERRED_SIZE, 38, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(9, Short.MAX_VALUE))
+                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jButtonLogin, javax.swing.GroupLayout.PREFERRED_SIZE, 38, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jButtonLoginOut, javax.swing.GroupLayout.PREFERRED_SIZE, 38, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addContainerGap(10, Short.MAX_VALUE))
         );
 
         jPanel1.setBackground(new java.awt.Color(132, 94, 194));
@@ -141,20 +157,30 @@ public class Client extends javax.swing.JFrame {
         jLabelHeader.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
         jLabelHeader.setText("STUDENT MANAGER");
 
+        jLabelWelcomeName.setFont(new java.awt.Font("Tahoma", 1, 24)); // NOI18N
+        jLabelWelcomeName.setForeground(new java.awt.Color(255, 255, 255));
+        jLabelWelcomeName.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        jLabelWelcomeName.setText("...");
+
         javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
         jPanel1.setLayout(jPanel1Layout);
         jPanel1Layout.setHorizontalGroup(
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel1Layout.createSequentialGroup()
-                .addGap(106, 106, 106)
-                .addComponent(jLabelHeader, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addContainerGap()
+                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(jLabelHeader, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(jLabelWelcomeName, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addContainerGap())
         );
         jPanel1Layout.setVerticalGroup(
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel1Layout.createSequentialGroup()
-                .addGap(41, 41, 41)
+                .addGap(20, 20, 20)
                 .addComponent(jLabelHeader)
-                .addContainerGap(106, Short.MAX_VALUE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jLabelWelcomeName)
+                .addContainerGap(62, Short.MAX_VALUE))
         );
 
         jTextFieldFirstName.addActionListener(new java.awt.event.ActionListener() {
@@ -263,7 +289,7 @@ public class Client extends javax.swing.JFrame {
                                 .addComponent(jLabelSurnameSearch, javax.swing.GroupLayout.PREFERRED_SIZE, 113, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                .addContainerGap(15, Short.MAX_VALUE)
                                 .addComponent(jTextFieldSearchSurname, javax.swing.GroupLayout.PREFERRED_SIZE, 167, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addGap(18, 18, 18)))
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -305,9 +331,9 @@ public class Client extends javax.swing.JFrame {
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
                 .addComponent(jPanel2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 12, Short.MAX_VALUE)
                 .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(32, 32, 32)
+                .addGap(18, 18, 18)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(layout.createSequentialGroup()
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
@@ -337,7 +363,7 @@ public class Client extends javax.swing.JFrame {
                                 .addComponent(jButtonReset, javax.swing.GroupLayout.PREFERRED_SIZE, 38, javax.swing.GroupLayout.PREFERRED_SIZE))
                             .addComponent(jTextFieldSearchSurname, javax.swing.GroupLayout.PREFERRED_SIZE, 43, javax.swing.GroupLayout.PREFERRED_SIZE)))
                     .addComponent(jScrollPane1, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, 244, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addContainerGap())
+                .addGap(50, 50, 50))
         );
 
         pack();
@@ -352,21 +378,22 @@ public class Client extends javax.swing.JFrame {
     }//GEN-LAST:event_jTableStudentsMousePressed
 
     private void jButtonSearchActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonSearchActionPerformed
-//        try {
-//            searchStudent(jTextFieldSearchSurname.getText());
-//        } catch (IOException ex) {
-//            Logger.getLogger(Client.class.getName()).log(Level.SEVERE, null, ex);
-//        }
+        try {
+            searchStudent(jTextFieldSearchSurname.getText());
+            
+        } catch (IOException ex) {
+            Logger.getLogger(Client.class.getName()).log(Level.SEVERE, null, ex);
+        }
     }//GEN-LAST:event_jButtonSearchActionPerformed
 
     private void jButtonResetActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonResetActionPerformed
-//        try {
-//            students = fetchAllStudents();
-//            // jTextFieldSearch.setText("");
-//        } catch (ClassNotFoundException ex) {
-//            Logger.getLogger(Client.class.getName()).log(Level.SEVERE, null, ex);
-//        }
-//        mapToTable(students);
+        try {
+            students = fetchAllStudents();
+            jTextFieldSearchSurname.setText("");
+        } catch (ClassNotFoundException ex) {
+            Logger.getLogger(Client.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        mapToTable(students);
     }//GEN-LAST:event_jButtonResetActionPerformed
 
     private void jTextFieldStudentIDActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jTextFieldStudentIDActionPerformed
@@ -441,6 +468,10 @@ public class Client extends javax.swing.JFrame {
         login(jTextFieldLogin.getText());
     }//GEN-LAST:event_jButtonLoginActionPerformed
 
+    private void jButtonLoginOutActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonLoginOutActionPerformed
+        logout();
+    }//GEN-LAST:event_jButtonLoginOutActionPerformed
+
     /**
      * @param args the command line arguments
      */
@@ -507,6 +538,7 @@ public class Client extends javax.swing.JFrame {
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton jButtonLogin;
+    private javax.swing.JButton jButtonLoginOut;
     private javax.swing.JButton jButtonReset;
     private javax.swing.JButton jButtonSearch;
     private javax.swing.JLabel jLabelFirstName;
@@ -516,6 +548,7 @@ public class Client extends javax.swing.JFrame {
     private javax.swing.JLabel jLabelStudentID;
     private javax.swing.JLabel jLabelSurname;
     private javax.swing.JLabel jLabelSurnameSearch;
+    private javax.swing.JLabel jLabelWelcomeName;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JPanel jPanel2;
     private javax.swing.JScrollPane jScrollPane1;
@@ -547,6 +580,10 @@ public class Client extends javax.swing.JFrame {
         jTextFieldSID.setVisible(isVisible);
         jTextFieldStudentID.setVisible(isVisible);
         jTextFieldSurname.setVisible(isVisible);
+        jScrollPane1.setVisible(isVisible);
+        jLabelWelcomeName.setVisible(isVisible);
+        jButtonLogin.setEnabled(isVisible ? false : true);
+        jButtonLoginOut.setEnabled(isVisible ? true : false);
         
     }
     // get the employee from the selected row in table
@@ -639,7 +676,8 @@ public class Client extends javax.swing.JFrame {
         try {
             toServer.writeUTF("login-" + userID);
             if(fromServer.readBoolean()) {
-                System.out.println("FOUND " + fromServer.readUTF());
+                jTextFieldLogin.setText("");
+                jLabelWelcomeName.setText("WELCOME, " + fromServer.readUTF().toUpperCase());
                 mainViewVisibility(true);
                 try {
                     fetchAllStudents();
@@ -648,20 +686,24 @@ public class Client extends javax.swing.JFrame {
                     Logger.getLogger(Client.class.getName()).log(Level.SEVERE, null, ex);
                 }
             }
-            toServer.flush();
+            
         } catch (IOException ex) {
             Logger.getLogger(Client.class.getName()).log(Level.SEVERE, null, ex);
         }
+    }
+    
+    public void logout() {
+        mainViewVisibility(false);
+        jTextFieldLogin.setText("");
     }
 
  
     public ArrayList<Student> fetchAllStudents() throws ClassNotFoundException {
 
         try {
-
-            toServer.flush();
-            toServer.writeUTF("getAll-" + null);
-            students.add(deserializeString(fromServer.readUTF()));
+            toServer.writeUTF("getAllStudents-" + null);
+            ObjectInputStream ois = new ObjectInputStream(socket.getInputStream());
+            students = (ArrayList) ois.readUnshared();
 
         } catch (IOException ex) {
             Logger.getLogger(Client.class.getName()).log(Level.SEVERE, null, ex);
@@ -678,23 +720,22 @@ public class Client extends javax.swing.JFrame {
         return student;
     }
 
-//    public ArrayList<Student> searchStudent(String surname) throws IOException {
-//        ArrayList<Student> student = null;
-//
-//        toServer.writeUTF("getOne-" + surname);
-//        toServer.flush();
-//
-//        try {
-//            student = (ArrayList<Student>) objectFromServer.readObject();
-//        } catch (ClassNotFoundException ex) {
-//            Logger.getLogger(Client.class.getName()).log(Level.SEVERE, null, ex);
-//        }
-//
-//        return student;
-//    }
+    public ArrayList<Student> searchStudent(String surname) throws IOException {
+   
+        try {
+            toServer.writeUTF("searchStudents-" + surname);
+            ObjectInputStream ois = new ObjectInputStream(socket.getInputStream());
+            students = (ArrayList) ois.readUnshared();
+            mapToTable(students);
+        } catch (ClassNotFoundException ex) {
+            Logger.getLogger(Client.class.getName()).log(Level.SEVERE, null, ex);
+        }
+
+        return students;
+    }
 }
 
-class Student {
+class Student implements Serializable{
 
     String SID;
     String studID;
