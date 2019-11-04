@@ -132,7 +132,7 @@ class ClientHandler extends Thread {
 
             case "searchStudents": {
                 ArrayList<Student> students = database.searchStudent(requestData);
-                writeToServer("Search Students", "Found [" + students.size() + "] students from surname " + requestData);
+                writeToServer("Search Students", "Found [" + students.size() + "] students from surname [" + requestData+ "]");
                 ObjectOutputStream oos = new ObjectOutputStream(socket.getOutputStream());
                 oos.writeUnshared(students);
                 break;
@@ -195,7 +195,7 @@ class DBController {
         }
     }
 
-    ArrayList searchStudent(String surname) throws SQLException {
+    ArrayList<Student> searchStudent(String surname) throws SQLException {
         ArrayList<Student> student = new ArrayList<>();
         String command = "SELECT * FROM `students` WHERE `SNAME` = \'" + surname + "\'";
         ResultSet result = executeSelectQuery(conn, command);
