@@ -183,6 +183,7 @@ public class Client extends javax.swing.JFrame {
                 .addContainerGap(62, Short.MAX_VALUE))
         );
 
+        jTextFieldFirstName.setEditable(false);
         jTextFieldFirstName.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 jTextFieldFirstNameActionPerformed(evt);
@@ -196,6 +197,7 @@ public class Client extends javax.swing.JFrame {
 
         jLabelFirstName.setText("First Name:");
 
+        jTextFieldSurname.setEditable(false);
         jTextFieldSurname.addKeyListener(new java.awt.event.KeyAdapter() {
             public void keyPressed(java.awt.event.KeyEvent evt) {
                 jTextFieldSurnameKeyPressed(evt);
@@ -204,6 +206,7 @@ public class Client extends javax.swing.JFrame {
 
         jLabelSurname.setText("Surname:");
 
+        jTextFieldSID.setEditable(false);
         jTextFieldSID.addKeyListener(new java.awt.event.KeyAdapter() {
             public void keyTyped(java.awt.event.KeyEvent evt) {
                 jTextFieldSIDKeyTyped(evt);
@@ -212,6 +215,7 @@ public class Client extends javax.swing.JFrame {
 
         jLabelSID.setText("SID:");
 
+        jTextFieldStudentID.setEditable(false);
         jTextFieldStudentID.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 jTextFieldStudentIDActionPerformed(evt);
@@ -380,7 +384,7 @@ public class Client extends javax.swing.JFrame {
     private void jButtonSearchActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonSearchActionPerformed
         try {
             searchStudent(jTextFieldSearchSurname.getText());
-            
+
         } catch (IOException ex) {
             Logger.getLogger(Client.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -521,8 +525,6 @@ public class Client extends javax.swing.JFrame {
         //</editor-fold>
         //</editor-fold>
         //</editor-fold>
-
-
         /* Create and display the form */
  /* Create and display the form */
         java.awt.EventQueue.invokeLater(new Runnable() {
@@ -563,7 +565,6 @@ public class Client extends javax.swing.JFrame {
     // End of variables declaration//GEN-END:variables
 
     // --- Controller Funtionality --- //
-    
     private void mainViewVisibility(Boolean isVisible) {
         jButtonReset.setVisible(isVisible);
         jButtonSearch.setVisible(isVisible);
@@ -584,16 +585,27 @@ public class Client extends javax.swing.JFrame {
         jLabelWelcomeName.setVisible(isVisible);
         jButtonLogin.setEnabled(isVisible ? false : true);
         jButtonLoginOut.setEnabled(isVisible ? true : false);
-        
+
     }
+
     // get the employee from the selected row in table
     private void getSelectedRow() {
-        int ID = (int) jTableStudents.getValueAt(jTableStudents.getSelectedRow(), 0);
+        String ID = jTableStudents.getValueAt(jTableStudents.getSelectedRow(), 0).toString();
         for (Student student : students) {
-            if (Integer.parseInt(student.getSID()) == ID) {
+            if (student.getSID() == ID) {
                 selectedStudent = student;
+                viewStudent(selectedStudent);
             }
         }
+    }
+
+    // map selected student to the text fields
+    private void viewStudent(Student selectedStudent) {
+        jTextFieldFirstName.setText(selectedStudent.getFirstName());
+        jTextFieldSurname.setText(selectedStudent.getSurname());
+        jTextFieldSID.setText(selectedStudent.getSID());
+        jTextFieldStudentID.setText(selectedStudent.getSID());
+
     }
 
     // helper function to load employees into table
@@ -610,7 +622,7 @@ public class Client extends javax.swing.JFrame {
             };
             tableModel.addRow(data);
         }
-        
+
         System.out.println(students);
 
         jTableStudents.getRowSorter().toggleSortOrder(0);
@@ -675,7 +687,7 @@ public class Client extends javax.swing.JFrame {
     public void login(String userID) {
         try {
             toServer.writeUTF("login-" + userID);
-            if(fromServer.readBoolean()) {
+            if (fromServer.readBoolean()) {
                 jTextFieldLogin.setText("");
                 jLabelWelcomeName.setText("WELCOME, " + fromServer.readUTF().toUpperCase());
                 mainViewVisibility(true);
@@ -686,18 +698,17 @@ public class Client extends javax.swing.JFrame {
                     Logger.getLogger(Client.class.getName()).log(Level.SEVERE, null, ex);
                 }
             }
-            
+
         } catch (IOException ex) {
             Logger.getLogger(Client.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
-    
+
     public void logout() {
         mainViewVisibility(false);
         jTextFieldLogin.setText("");
     }
 
- 
     public ArrayList<Student> fetchAllStudents() throws ClassNotFoundException {
 
         try {
@@ -721,7 +732,7 @@ public class Client extends javax.swing.JFrame {
     }
 
     public ArrayList<Student> searchStudent(String surname) throws IOException {
-   
+
         try {
             toServer.writeUTF("searchStudents-" + surname);
             ObjectInputStream ois = new ObjectInputStream(socket.getInputStream());
@@ -735,7 +746,7 @@ public class Client extends javax.swing.JFrame {
     }
 }
 
-class Student implements Serializable{
+class Student implements Serializable {
 
     String SID;
     String studID;

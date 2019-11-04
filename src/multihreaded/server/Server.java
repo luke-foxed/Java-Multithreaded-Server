@@ -105,18 +105,18 @@ class ClientHandler extends Thread {
         switch (requestType) {
             case "login": {
                 try {
-                    Student student = database.findStudentByID(requestData);
+                    String foundUser = database.findStudentByID(requestData);
 
-                    if (student != null) {
+                    if (foundUser != null) {
                         outputToClient.writeBoolean(true);
-                        outputToClient.writeUTF(student.getFirstName() + " " + student.getSurname());
-                        writeToServer("Login", "Welcome " + student.getFirstName() + " " + student.getSurname());
+                        outputToClient.writeUTF(foundUser);
+                        writeToServer("Login", "Welcome " + foundUser);
                     } else {
                         outputToClient.writeBoolean(false);
-                        writeToServer("Login", "No Student Found");
+                        writeToServer("Login", "No User Found");
                     }
                 } catch (SQLException ex) {
-                    System.out.println("Error finding Student! \n " + ex.getMessage());;
+                    System.out.println("Error finding User! \n " + ex.getMessage());;
                 }
                 break;
             }
@@ -152,7 +152,8 @@ class ClientHandler extends Thread {
 /// Class to access DB
 class DBController {
 
-    private final String tableName = "students";
+    private final String studentsTable = "students";
+    private final String usersTable = "users";
     private Connection conn;
 
     public Connection getConnection() throws SQLException {
@@ -175,19 +176,22 @@ class DBController {
 
     ArrayList<Student> getStudents() throws SQLException {
         ArrayList<Student> students = new ArrayList<>();
-        String command = "SELECT * FROM " + this.tableName;
+        String command = "SELECT * FROM " + this.studentsTable;
         ResultSet result = executeSelectQuery(conn, command);
         return formatStudents(students, result);
     }
 
-    Student findStudentByID(String userID) throws SQLException {
-        ArrayList<Student> student = new ArrayList<>();
-        String command = "SELECT * FROM `students` WHERE `SID` = \'" + userID + "\'";
+    String findStudentByID(String userID) throws SQLException {
+        String foundUser = null;
+        String command = "SELECT * FROM " + this.usersTable + " WHERE `UID` = \'" + userID + "\'";
         ResultSet result = executeSelectQuery(conn, command);
         if (!result.isBeforeFirst()) {
             return null;
         } else {
-            return formatStudents(student, result).get(0);
+            while (result.next()) {
+                foundUser = result.getString("UNAME");
+            }
+            return foundUser;
         }
     }
 
