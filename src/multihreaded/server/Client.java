@@ -106,7 +106,11 @@ public class Client extends javax.swing.JFrame {
 		jButtonLoginOut.setBorderPainted(false);
 		jButtonLoginOut.addActionListener(new java.awt.event.ActionListener() {
 			public void actionPerformed(java.awt.event.ActionEvent evt) {
-				jButtonLoginOutActionPerformed(evt);
+				try {
+					jButtonLoginOutActionPerformed(evt);
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
 			}
 		});
 
@@ -355,8 +359,8 @@ public class Client extends javax.swing.JFrame {
 		try {
 			students = fetchAllStudents();
 			jTextFieldSearchSurname.setText("");
-		} catch (ClassNotFoundException ex) {
-			Logger.getLogger(Client.class.getName()).log(Level.SEVERE, null, ex);
+		} catch (Exception ex) {
+			alertHelper("Error", "Error Clearing Students", ex.getMessage());
 		}
 		mapToTable(students);
 	}
@@ -365,7 +369,7 @@ public class Client extends javax.swing.JFrame {
 		login(jTextFieldLogin.getText());
 	}
 
-	private void jButtonLoginOutActionPerformed(java.awt.event.ActionEvent evt) {
+	private void jButtonLoginOutActionPerformed(java.awt.event.ActionEvent evt) throws IOException {
 		logout();
 	}
 
@@ -433,7 +437,7 @@ public class Client extends javax.swing.JFrame {
 		});
 	}
 
-	// Variables declaration - do not modify//GEN-BEGIN:variables
+	// Variables declaration - do not modify
 	private javax.swing.JButton jButtonLogin;
 	private javax.swing.JButton jButtonLoginOut;
 	private javax.swing.JButton jButtonReset;
@@ -457,7 +461,7 @@ public class Client extends javax.swing.JFrame {
 	private javax.swing.JTextField jTextFieldSearchSurname;
 	private javax.swing.JTextField jTextFieldStudentID;
 	private javax.swing.JTextField jTextFieldSurname;
-	// End of variables declaration//GEN-END:variables
+	// End of variables declaration
 
 	// --- Controller Funtionality --- //
 	private void mainViewVisibility(Boolean isVisible) {
@@ -516,14 +520,6 @@ public class Client extends javax.swing.JFrame {
 		jTableStudents.getRowSorter().toggleSortOrder(0);
 	}
 
-	// validation to ensure no fields are empty
-	private boolean checkErrors() {
-		boolean isError;
-		isError = Arrays.asList(jTextFieldFirstName.getText(), jTextFieldSurname.getText(),
-				jTextFieldStudentID.getText(), jTextFieldSID.getText()).contains("");
-		return isError;
-	}
-
 	// helper function to quickly call a Swing Alert Frame
 	private void alertHelper(String type, String title, String message) {
 		JFrame frame = null;
@@ -555,7 +551,7 @@ public class Client extends javax.swing.JFrame {
 			toServer = new DataOutputStream(socket.getOutputStream());
 
 		} catch (IOException ex) {
-			System.out.println(ex.getMessage());
+			alertHelper("ERROR", "Error connecting to localhost", ex.getMessage() + " - is server running?");
 		}
 	}
 
@@ -563,38 +559,37 @@ public class Client extends javax.swing.JFrame {
 		try {
 			toServer.writeUTF("login-" + userID);
 			if (fromServer.readBoolean()) {
-				jTextFieldLogin.setText("");
+				jTextFieldLogin.setText("");	
 				jLabelWelcomeName.setText("WELCOME, " + fromServer.readUTF().toUpperCase());
 				mainViewVisibility(true);
 				try {
 					fetchAllStudents();
 					mapToTable(students);
-				} catch (ClassNotFoundException ex) {
-					Logger.getLogger(Client.class.getName()).log(Level.SEVERE, null, ex);
+				} catch (Exception ex) {
+					alertHelper("ERROR", "Error retrieving students", ex.getMessage());
 				}
 			}
 
+			else {
+				alertHelper("WARNING", "Login Incorrect", "No User Found!");
+			}
+
 		} catch (IOException ex) {
-			Logger.getLogger(Client.class.getName()).log(Level.SEVERE, null, ex);
+			alertHelper("ERROR", "Error Logging In", ex.getMessage());
 		}
 	}
 
-	public void logout() {
+	public void logout() throws IOException {
 		mainViewVisibility(false);
 		jTextFieldLogin.setText("");
+
 	}
 
-	public ArrayList<Student> fetchAllStudents() throws ClassNotFoundException {
+	public ArrayList<Student> fetchAllStudents() throws IOException, ClassNotFoundException {
 
-		try {
-			toServer.writeUTF("getAllStudents-" + null);
-			ObjectInputStream ois = new ObjectInputStream(socket.getInputStream());
-			students = (ArrayList) ois.readUnshared();
-
-		} catch (IOException ex) {
-			Logger.getLogger(Client.class.getName()).log(Level.SEVERE, null, ex);
-
-		}
+		toServer.writeUTF("getAllStudents-" + null);
+		ObjectInputStream ois = new ObjectInputStream(socket.getInputStream());
+		students = (ArrayList) ois.readUnshared();
 
 		return students;
 	}
@@ -614,7 +609,7 @@ public class Client extends javax.swing.JFrame {
 			students = (ArrayList) ois.readUnshared();
 			mapToTable(students);
 		} catch (ClassNotFoundException ex) {
-			Logger.getLogger(Client.class.getName()).log(Level.SEVERE, null, ex);
+			alertHelper("WARNING", "Warning while Searching Student", ex.getMessage());
 		}
 
 		return students;
