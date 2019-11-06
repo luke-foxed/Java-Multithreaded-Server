@@ -371,7 +371,10 @@ public class Client extends javax.swing.JFrame {
 	}
 
 	private void jButtonLoginActionPerformed(java.awt.event.ActionEvent evt) {
-		login(jTextFieldLogin.getText());
+		if(jTextFieldLogin.getText().strip() == "") {
+			alertHelper("WARNING", "Missing Input", "Please Enter A UserID!");
+		}
+		login(jTextFieldLogin.getText().strip());
 	}
 
 	private void jButtonLoginOutActionPerformed(java.awt.event.ActionEvent evt) throws IOException {
