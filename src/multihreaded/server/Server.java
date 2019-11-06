@@ -1,32 +1,40 @@
 package multihreaded.server;
 
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 /**
- *
- * @author Luke Fox
- */
+*
+* @author Luke Fox
+* @description Server class which handles the client requests to read from the DB and write back to client
+* 
+*/
 
 import java.io.*;
 import java.net.*;
 import java.util.*;
 import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import javax.swing.*;
+import javax.swing.border.EmptyBorder;
+
 import java.util.Date;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class Server extends JFrame {
 
+	// surpress versionUID warning
+	private static final long serialVersionUID = 1L;
+	
+	private JPanel panel = new JPanel();
+	private BoxLayout boxlayout = new BoxLayout(panel, BoxLayout.Y_AXIS);
+	private JButton clearLogsBtn = new JButton("CLEAR");
 	private JTextArea serverLog = new JTextArea();
+	private JLabel header = new JLabel("SERVER LOGS");
 
 	public static void main(String[] args) {
 		new Server();
@@ -34,13 +42,9 @@ public class Server extends JFrame {
 
 	public Server() {
 
-		// Place text area on the frame
-		setLayout(new BorderLayout());
-		add(new JScrollPane(serverLog), BorderLayout.CENTER);
-		setTitle("Server");
-		setSize(500, 300);
-		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		setVisible(true);
+		// add log window and clear button
+		constructFrame();
+
 		try {
 			ServerSocket serverSocket = new ServerSocket(8000);
 			serverLog.append("Server started at " + new Date() + '\n');
@@ -52,11 +56,37 @@ public class Server extends JFrame {
 			}
 
 		} catch (IOException ex) {
+			
 			System.err.println(ex);
 		}
 	}
 
+	private void constructFrame() {
+		panel.setLayout(boxlayout);
+		panel.add(header);
+		panel.add(serverLog);
+		panel.add(clearLogsBtn);
+
+		serverLog.setPreferredSize(new Dimension(600,300));
+		header.setAlignmentX(CENTER_ALIGNMENT);
+		clearLogsBtn.setAlignmentX(CENTER_ALIGNMENT);
+		clearLogsBtn.addActionListener((ActionListener) new ActionListener() {
+			
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				serverLog.setText("");
+			}
+		});
+
+		setResizable(false);
+		setTitle("Server");
+		setSize(700, 400);
+		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		add(panel);
+		setVisible(true);
+	}
 }
+
 
 /// Class to handle client input
 class ClientHandler extends Thread {
@@ -88,6 +118,7 @@ class ClientHandler extends Thread {
 	public void run() {
 		try {
 			while (true) {
+
 				// Receive input from client
 				requestHandler(inuputFromClient.readUTF());
 			}
@@ -98,6 +129,7 @@ class ClientHandler extends Thread {
 	}
 
 	public void requestHandler(String request) throws SQLException, IOException {
+		// split string into type and data
 		String requestType = request.split("-")[0];
 		String requestData = request.split("-")[1];
 
@@ -137,6 +169,14 @@ class ClientHandler extends Thread {
 			oos.writeUnshared(students);
 			break;
 		}
+		
+		case "logout": {
+			// close socket and interrupt thread
+			socket.close();
+			this.interrupt();
+			writeToServer("Logout", "User logged out");
+			break;
+		}
 
 		}
 	}
@@ -147,12 +187,12 @@ class ClientHandler extends Thread {
 	}
 }
 
-/// Class to access DB
+/// Class to access DB and return data
 class DBController {
 
 	private final String studentsTable = "students";
 	private final String usersTable = "users";
-	private Connection conn;
+	private Connection conn = null;
 
 	public Connection getConnection() throws SQLException {
 		Connection conn;
@@ -167,7 +207,6 @@ class DBController {
 		String dbName = "dist_sys_assignment_2";
 		conn = DriverManager.getConnection("jdbc:mysql://" + serverName + ":" + portNumber + "/" + dbName,
 				connectionProps);
-		System.out.println(conn);
 		return conn;
 	}
 
@@ -200,7 +239,6 @@ class DBController {
 	}
 
 	private ArrayList<Student> formatStudents(ArrayList<Student> students, ResultSet result) throws SQLException {
-		System.out.println("RESULT: " + result.toString());
 		while (result.next()) {
 			Student student = new Student(result.getString("SID"), result.getString("STUD_ID"),
 					result.getString("FNAME"), result.getString("SNAME"));

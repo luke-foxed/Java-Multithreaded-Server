@@ -1,5 +1,14 @@
 package multihreaded.server;
 
+
+/**
+*
+* @author Luke Fox
+* @description Client class which contains may layout which communicates with Server
+* 
+*/
+
+
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.io.DataInputStream;
@@ -17,10 +26,6 @@ import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 import javax.swing.table.DefaultTableModel;
 
-/**
- *
- * @author Luke Fox
- */
 public class Client extends javax.swing.JFrame {
 
 	private DataOutputStream toServer;
@@ -579,10 +584,13 @@ public class Client extends javax.swing.JFrame {
 		}
 	}
 
-	public void logout() throws IOException {
-		mainViewVisibility(false);
-		jTextFieldLogin.setText("");
-
+	public void logout() {
+		try {
+			toServer.writeUTF("logout-" + null);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		System.exit(1);
 	}
 
 	public ArrayList<Student> fetchAllStudents() throws IOException, ClassNotFoundException {
