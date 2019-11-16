@@ -18,66 +18,71 @@ import java.util.Date;
 
 public class Server extends JFrame {
 
-    // surpress versionUID warning
-    private static final long serialVersionUID = 1L;
+	// surpress versionUID warning
+	private static final long serialVersionUID = 1L;
 
-    private JPanel panel = new JPanel();
-    private BoxLayout boxlayout = new BoxLayout(panel, BoxLayout.Y_AXIS);
-    private JButton clearLogsBtn = new JButton("CLEAR");
-    private JTextArea serverLog = new JTextArea();
-    private JLabel header = new JLabel("SERVER LOGS");
+	private JPanel panel = new JPanel();
+	private BoxLayout boxlayout = new BoxLayout(panel, BoxLayout.Y_AXIS);
+	private JButton clearLogsBtn = new JButton("CLEAR");
+	private JTextArea serverLog = new JTextArea();
+	private JLabel header = new JLabel("SERVER LOGS");
 
-    public static void main(String[] args) {
-        Server server = new Server();
-    }
+	ServerSocket serverSocket = null;
 
-    public Server() {
-        constructFrame();
+	public static void main(String[] args) {
+		new Server();
+	}
 
-        // set up server socket and start client thread
-        try {
-            ServerSocket serverSocket = new ServerSocket(8000);
-            serverLog.append("Server started at " + new Date() + '\n');
+	public Server() {
+		constructFrame();
 
-            while (true) {
-                Socket newSocket = serverSocket.accept();
-                ClientHandler client = new ClientHandler(newSocket, serverLog);
-                client.start();
-            }
+		// set up server socket and start client thread
+		try {
+			serverSocket = new ServerSocket(8000);
+			serverLog.append("Server started at " + new Date() + '\n');
 
-        } catch (IOException ex) {
+			while (true) {
+				Socket newSocket = serverSocket.accept();
+				ClientHandler client = new ClientHandler(newSocket, serverLog);
+				client.start();
+			}
 
-            System.err.println(ex);
-        }
-    }
-    
-    // display server logs text area and clear button
-    private void constructFrame() {
+		} catch (IOException ex) {
+			try {
+				serverSocket.close();
+			} catch (IOException e) {
+			}
+			System.err.println(ex);
+		}
+	}
 
-        JScrollPane scrollPane = new JScrollPane(serverLog);
-        scrollPane.setBounds(3, 3, 600, 300);
-        scrollPane.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
+	// display server logs text area and clear button
+	private void constructFrame() {
 
-        panel.setLayout(boxlayout);
-        panel.add(header);
-        panel.add(scrollPane);
-        panel.add(clearLogsBtn);
+		JScrollPane scrollPane = new JScrollPane(serverLog);
+		scrollPane.setBounds(3, 3, 600, 300);
+		scrollPane.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
 
-        header.setAlignmentX(CENTER_ALIGNMENT);
-        clearLogsBtn.setAlignmentX(CENTER_ALIGNMENT);
-        clearLogsBtn.addActionListener((ActionListener) new ActionListener() {
+		panel.setLayout(boxlayout);
+		panel.add(header);
+		panel.add(scrollPane);
+		panel.add(clearLogsBtn);
 
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                serverLog.setText("");
-            }
-        });
+		header.setAlignmentX(CENTER_ALIGNMENT);
+		clearLogsBtn.setAlignmentX(CENTER_ALIGNMENT);
+		clearLogsBtn.addActionListener((ActionListener) new ActionListener() {
 
-        setResizable(false);
-        setTitle("Server");
-        setSize(700, 400);
-        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        add(panel);
-        setVisible(true);
-    }
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				serverLog.setText("");
+			}
+		});
+
+		setResizable(false);
+		setTitle("Server");
+		setSize(700, 400);
+		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		add(panel);
+		setVisible(true);
+	}
 }

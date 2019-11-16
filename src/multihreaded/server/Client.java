@@ -23,7 +23,9 @@ import javax.swing.table.DefaultTableModel;
 
 public class Client extends javax.swing.JFrame {
 
-    private DataOutputStream toServer;
+	// remove warnings
+	private static final long serialVersionUID = 1L;
+	private DataOutputStream toServer;
     private DataInputStream fromServer;
     private Socket socket;
     private int selectedRow = 0;
@@ -34,7 +36,11 @@ public class Client extends javax.swing.JFrame {
     // Define table columns and model with non-editable cells
     String col[] = {"SID", "StudID", "FirstName", "Surname"};
     private final DefaultTableModel tableModel = new DefaultTableModel(col, 0) {
-        @Override
+
+    	// remove warnings
+		private static final long serialVersionUID = 1L;
+
+		@Override
         public boolean isCellEditable(int row, int column) {
             return false;
         }
@@ -659,19 +665,21 @@ public class Client extends javax.swing.JFrame {
     }
 
     // retrieve all students from DB
+    @SuppressWarnings("unchecked")
     private ArrayList<Student> fetchAllStudents() throws IOException, ClassNotFoundException {
         toServer.writeUTF("getAllStudents-" + null);
         ObjectInputStream ois = new ObjectInputStream(socket.getInputStream());
-        students = (ArrayList) ois.readUnshared();
+        students = (ArrayList<Student>) ois.readUnshared();
         return students;
     }
 
     // search individual student by surname
-    private ArrayList<Student> searchStudent(String surname) throws IOException {
+    @SuppressWarnings("unchecked")
+	private ArrayList<Student> searchStudent(String surname) throws IOException {
         try {
             toServer.writeUTF("searchStudents-" + surname);
             ObjectInputStream ois = new ObjectInputStream(socket.getInputStream());
-            students = (ArrayList) ois.readUnshared();
+            students = (ArrayList<Student>) ois.readUnshared();
             mapToTable(students);
         } catch (ClassNotFoundException ex) {
             alertHelper("WARNING", "Warning while Searching Student", ex.getMessage());
