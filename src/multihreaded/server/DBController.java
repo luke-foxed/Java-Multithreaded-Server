@@ -30,11 +30,16 @@ class DBController {
         connectionProps.put("user", userName);
         connectionProps.put("password", password);
 
+        try {
         String serverName = "localhost";
         int portNumber = 3306;
-        String dbName = "dist_sys_assignment_2";
+        String dbName = "assign2";
         conn = DriverManager.getConnection("jdbc:mysql://" + serverName + ":" + portNumber + "/" + dbName,
                 connectionProps);
+        }
+        catch(SQLException e) {
+            System.out.println("Exception - " + e.getMessage());
+        }
         return conn;
     }
 
@@ -48,6 +53,7 @@ class DBController {
 
     // find student by ID
     String findUserByID(String userID) throws SQLException {
+        System.out.println("Finding user...");
         String foundUser = null;
         String command = "SELECT * FROM " + this.usersTable + " WHERE `UID` = \'" + userID + "\'";
         ResultSet result = executeSelectQuery(conn, command);
