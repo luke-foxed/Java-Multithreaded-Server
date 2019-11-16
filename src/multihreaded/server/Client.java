@@ -1,17 +1,17 @@
 package multihreaded.server;
 
 /**
- *
+ * @class Client.java
  * @author Luke Fox
  * @description Client class which contains may layout which communicates with
- * Server
- *
+ * Server by connecting to the socket over port 8000
+ * @date 16/11/2019
+ * @instructions Before running this class, first run Server.java
  */
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
-import java.io.Serializable;
 import java.lang.reflect.InvocationTargetException;
 import java.net.Socket;
 import java.util.ArrayList;
@@ -391,7 +391,7 @@ public class Client extends javax.swing.JFrame {
 
     private void jButtonResetActionPerformed(java.awt.event.ActionEvent evt) {
         try {
-            reset();         
+            reset();
         } catch (IOException | ClassNotFoundException ex) {
             alertHelper("Error", "Error Clearing Students", ex.getMessage());
         }
@@ -530,7 +530,6 @@ public class Client extends javax.swing.JFrame {
 
     // get the employee from the selected row in table
     private void getSelectedRow() {
-        System.out.println("Current selected row: " + jTableStudents.getSelectedRow());
         String ID = jTableStudents.getValueAt(jTableStudents.getSelectedRow(), 0).toString();
         selectedRow = jTableStudents.getSelectedRow();
         for (Student student : students) {
@@ -546,7 +545,7 @@ public class Client extends javax.swing.JFrame {
         jTextFieldFirstName.setText(selectedStudent.getFirstName());
         jTextFieldSurname.setText(selectedStudent.getSurname());
         jTextFieldSID.setText(selectedStudent.getSID());
-        jTextFieldStudentID.setText(selectedStudent.getSID());
+        jTextFieldStudentID.setText(selectedStudent.getStudID());
 
     }
 
@@ -554,19 +553,18 @@ public class Client extends javax.swing.JFrame {
     private void mapToTable(ArrayList<Student> students) {
         tableModel.setRowCount(0); // reset rows to avoid duplicates
         jTableStudents.setModel(tableModel);
-
         for (Student student : students) {
             Object[] data = {student.getSID(), student.getStudID(), student.getFirstName(), student.getSurname()};
             tableModel.addRow(data);
         }
-
         jTableStudents.getRowSorter().toggleSortOrder(0);
         jTableStudents.changeSelection(0, 0, false, false);
         getSelectedRow();
     }
 
+    // move to next student in table
     private void nextStudent() {
-        if (selectedRow+1 >= jTableStudents.getRowCount()) {
+        if (selectedRow + 1 >= jTableStudents.getRowCount()) {
             alertHelper("ERROR", "No Next Student", "You are at the end of the list");
         } else {
             selectedRow++;
@@ -575,6 +573,7 @@ public class Client extends javax.swing.JFrame {
         }
     }
 
+    // move to previous student in table
     private void previousStudent() {
         if (selectedRow == 0) {
             alertHelper("ERROR", "No Previous Student", "You are at the start of the list");
@@ -582,10 +581,10 @@ public class Client extends javax.swing.JFrame {
             selectedRow--;
             jTableStudents.setRowSelectionInterval(selectedRow, selectedRow);
             getSelectedRow();
-
         }
     }
-    
+
+    // reset table view and text fields
     private void reset() throws IOException, ClassNotFoundException {
         jTextFieldSearchSurname.setText("");
         selectedRow = 0;
@@ -612,7 +611,6 @@ public class Client extends javax.swing.JFrame {
                 warningType = -1;
                 break;
         }
-
         JOptionPane.showMessageDialog(frame, message, title, warningType);
     }
 
@@ -628,6 +626,7 @@ public class Client extends javax.swing.JFrame {
         }
     }
 
+    // take in userID then write data to server to validate user
     public void login(String userID) {
         try {
             toServer.writeUTF("login-" + userID);
@@ -650,6 +649,7 @@ public class Client extends javax.swing.JFrame {
         }
     }
 
+    // write logout request to server then exit
     public void logout() {
         try {
             toServer.writeUTF("logout-" + null);
@@ -658,17 +658,16 @@ public class Client extends javax.swing.JFrame {
         System.exit(1);
     }
 
+    // retrieve all students from DB
     private ArrayList<Student> fetchAllStudents() throws IOException, ClassNotFoundException {
-
         toServer.writeUTF("getAllStudents-" + null);
         ObjectInputStream ois = new ObjectInputStream(socket.getInputStream());
         students = (ArrayList) ois.readUnshared();
-
         return students;
     }
 
+    // search individual student by surname
     private ArrayList<Student> searchStudent(String surname) throws IOException {
-
         try {
             toServer.writeUTF("searchStudents-" + surname);
             ObjectInputStream ois = new ObjectInputStream(socket.getInputStream());
@@ -677,62 +676,6 @@ public class Client extends javax.swing.JFrame {
         } catch (ClassNotFoundException ex) {
             alertHelper("WARNING", "Warning while Searching Student", ex.getMessage());
         }
-
         return students;
-    }
-}
-
-final class Student implements Serializable {
-
-    private static final long serialVersionUID = 1L;
-
-    String SID;
-    String studID;
-    String fName;
-    String sName;
-
-    public Student(String SID, String studID, String fName, String sName) {
-        this.setSID(SID);
-        this.setStudID(studID);
-        this.setFirstName(fName);
-        this.setSurname(sName);
-    }
-
-    // Getters and Setters
-    public String getSID() {
-        return SID;
-    }
-
-    public String getStudID() {
-        return studID;
-    }
-
-    public String getFirstName() {
-        return fName;
-    }
-
-    public String getSurname() {
-        return sName;
-    }
-
-    public void setSID(String SID) {
-        this.SID = SID;
-    }
-
-    public void setStudID(String studID) {
-        this.studID = studID;
-    }
-
-    public void setFirstName(String fName) {
-        this.fName = fName;
-    }
-
-    public void setSurname(String sName) {
-        this.sName = sName;
-    }
-
-    @Override
-    public String toString() {
-        return "Student{" + "SID=" + SID + ", studID=" + studID + ", firstName=" + fName + ", surname=" + sName + '}';
     }
 }
